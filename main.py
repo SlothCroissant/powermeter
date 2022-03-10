@@ -1,13 +1,25 @@
+from audioop import avg
+import os
 import RPi.GPIO as GPIO
 import spidev
 import time
-import os
 import statistics
 import heapq
 from datetime import datetime
+import mysql.connector
 
-Debug = True
-X = ""
+########################
+# Env Vars
+########################
+debug = True
+# CT Amp Ratings
+ct_count = 8
+
+# Build dict of CTs and their Amp rating
+ct_amps = {}
+for i in range(ct_count):
+    key=str("ct"+str(i))
+    ct_amps[key]=float(os.environ.get("ct"+str(i)))
 
 # Open SPI bus
 spi = spidev.SpiDev()
@@ -34,47 +46,54 @@ def setmediandata(data):
     #pushing additional math here testing:
     #get top 500 results from 60hz grab
     #start = datetime.today().timestamp()
-    _temp = heapq.nlargest(4000, data)
+    _temp = heapq.nlargest(10, data)
     #end = datetime.today().timestamp()
     #print(f"seek time for top 500 was {end - start} seconds")
     #median the _temp (top 500) results from here.
     #print(f" measured input index count: {len(data)}")
-    time.sleep(0.5)
+    # time.sleep(0.5)
     return statistics.median(_temp)
 
 try:
-    while Debug == False:
-        #Itterate through Channels (0-7)
+    # "debug" loop
+    arr = []
+    while debug == True:
         for i in range(8):
-            if (X == ""):
-                print(f"channel: {i} returning {ConvertVolts(ReadChannel(i), 4)}")
-            else:
-                print(f"channel: {X} returning {ConvertVolts(ReadChannel(X), 4)}")
-            #time.sleep(1)
-        # Wait before repeating loop
-        time.sleep(1)
-        #print(spi)
-
-    while Debug == True:
-        measuredinput = []
-        if (X == ""):
-            for i in range(8):
+            while (len(arr) < 10):
+                measuredinput = []
+                reading = 1
+                while (reading > 0):
+                    reading = ConvertVolts(ReadChannel(i), 4)
+                while (reading == 0): # TO DO: What if a CT never goes above zero?
+                    reading = ConvertVolts(ReadChannel(i), 4)
                 start = datetime.today().timestamp()
+                while (reading > 0):
+                    reading = ConvertVolts(ReadChannel(i), 4)
+                    if (reading > 0):
+                        measuredinput.append(reading)
                 end = datetime.today().timestamp()
-                while ((end - start) <= 1):
-                    measuredinput.append(ConvertVolts(ReadChannel(i), 4))
-                    end = datetime.today().timestamp()
-                print(f"Channel: {i} returning Median Value without AC correction: {setmediandata(measuredinput)}")
+                if (len(measuredinput) > 50):
+                    #print(f"Channel: {i} | count: " + str(len(measuredinput)) + ' | time: ' + str(round((end-start)*1000,2)) + 'ms | min: ' + str(min(measuredinput)) + " | max: " + str(max(measuredinput)) + " | mean: " + str(statistics.mean(measuredinput)) + " | stdev: " + str(statistics.stdev(measuredinput)))
+                    arr.append(statistics.mean(measuredinput))
                 measuredinput.clear()
+            print("ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(120 * statistics.mean(arr) * ct_amps["ct"+str(i)]) + " | stdev: " + str(statistics.stdev(arr)))
+            arr.clear()
 
-        else:
+    # "Prod" loop
+    while debug == False:
+        measuredinput = []
+        for i in range(8):
             start = datetime.today().timestamp()
+            while (len(measuredinput) < 10000):
+                measuredinput.append(ConvertVolts(ReadChannel(7), 4))
             end = datetime.today().timestamp()
-            while ((end - start) <= 1):
-                measuredinput.append(ConvertVolts(ReadChannel(X), 4))
-                end = datetime.today().timestamp()
-            print(f"Channel: {X} returning Median Value without AC correction: {setmediandata(measuredinput)}")
-
+            volts = setmediandata(measuredinput)
+            print(f"Channel {i} Time Elapsed: {round((end-start)*1000,2)}")
+            print(f"           volts: {volts}")
+            print(f"           watts: " + str(120 * volts * ct_amps["ct"+str(i)]))
+            print(f"           count: " + str(len(measuredinput)))
+            print(f"           stdev: " + str(statistics.stdev(measuredinput)))
+            measuredinput.clear()
 
 except KeyboardInterrupt:
     print("User Exit")
