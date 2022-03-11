@@ -12,14 +12,46 @@ import mysql.connector
 # Env Vars
 ########################
 debug = True
+
 # CT Amp Ratings
 ct_count = 8
+db_host = os.environ.get("db_host")
+db_port = os.environ.get("db_port")
+db_user = os.environ.get("db_user")
+db_pass = os.environ.get("db_pass")
 
 # Build dict of CTs and their Amp rating
 ct_amps = {}
 for i in range(ct_count):
     key=str("ct"+str(i))
     ct_amps[key]=float(os.environ.get("ct"+str(i)))
+
+########################
+# MySQL
+########################
+def checkTableExists(dbcon, tablename):
+    dbcur = dbcon.cursor()
+    dbcur.execute("""
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_name = '{0}'
+        """.format(tablename.replace('\'', '\'\'')))
+    if dbcur.fetchone()[0] == 1:
+        dbcur.close()
+        return True
+
+    dbcur.close()
+    return False
+
+# Establish DB connection
+mydb = mysql.connector.connect(
+  host=db_host,
+  user=db_user,
+  password=db_pass
+)
+print("Connected to database: " + db_host + ":" + str(db_port))
+print("Checking if \"powermeter\" table exists...")
+print(checkTableExists(mydb, "powermeter"))
 
 # Open SPI bus
 spi = spidev.SpiDev()
