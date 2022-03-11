@@ -53,6 +53,9 @@ print("Connected to database: " + db_host + ":" + str(db_port))
 print("Checking if \"powermeter\" table exists...")
 print(checkTableExists(mydb, "powermeter"))
 
+########################
+# Hardware & Math
+########################
 # Open SPI bus
 spi = spidev.SpiDev()
 spi.open(0, 0)
@@ -72,6 +75,10 @@ def get_voltage_reading(ct):
     volts = (read_raw_data(ct) * 3.3) / float(4095)
     volts = round(volts, places)
     return volts
+
+########################
+# Do Work
+########################
 
 try:
     # "debug" loop
@@ -100,24 +107,8 @@ try:
                 if (len(measuredinput) > 50):
                     arr.append(statistics.mean(measuredinput))
                 measuredinput.clear()
-            print("ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)) + " | stdev: " + str(statistics.stdev(arr)))
+            print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)) + " | stdev: " + str(statistics.stdev(arr)))
             arr.clear()
-
-    # "Prod" loop
-    while debug == False:
-        measuredinput = []
-        for i in range(8):
-            start = datetime.today().timestamp()
-            while (len(measuredinput) < 10000):
-                measuredinput.append(get_voltage_reading(i))
-            end = datetime.today().timestamp()
-            volts = statistics.median(measuredinput)
-            print(f"Channel {i} Time Elapsed: {round((end-start)*1000,2)}")
-            print(f"           volts: {volts}")
-            print(f"           watts: " + str(120 * volts * ct_amps["ct"+str(i)]))
-            print(f"           count: " + str(len(measuredinput)))
-            print(f"           stdev: " + str(statistics.stdev(measuredinput)))
-            measuredinput.clear()
 
 except KeyboardInterrupt:
     print("User Exit")
