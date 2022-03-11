@@ -13,18 +13,22 @@ import mysql.connector
 ########################
 debug = True
 
-# CT Amp Ratings
+# CT Count
 ct_count = 8
-db_host = os.environ.get("db_host")
-db_port = os.environ.get("db_port")
-db_user = os.environ.get("db_user")
-db_pass = os.environ.get("db_pass")
 
 # Build dict of CTs and their Amp rating
 ct_amps = {}
 for i in range(ct_count):
     key=str("ct"+str(i))
     ct_amps[key]=float(os.environ.get("ct"+str(i)))
+
+# MySQL DB Info
+db_host = os.environ.get("db_host")
+db_port = os.environ.get("db_port")
+db_database = os.environ.get("db_database")
+db_user = os.environ.get("db_user")
+db_pass = os.environ.get("db_pass")
+db_table = os.environ.get("db_table")
 
 ########################
 # MySQL
@@ -39,19 +43,42 @@ def checkTableExists(dbcon, tablename):
     if dbcur.fetchone()[0] == 1:
         dbcur.close()
         return True
-
     dbcur.close()
     return False
+
+def createTable(dbcon, tablename):
+    return True
 
 # Establish DB connection
 mydb = mysql.connector.connect(
   host=db_host,
+  database=db_database,
   user=db_user,
   password=db_pass
 )
 print("Connected to database: " + db_host + ":" + str(db_port))
-print("Checking if \"powermeter\" table exists...")
-print(checkTableExists(mydb, "powermeter"))
+print("Checking if \"" + db_table + "\" table exists...")
+if (checkTableExists(mydb, db_table) == False):
+    mycursor = mydb.cursor()
+    mycursor.execute("CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))")
+
+# TO DO: Create DB if needed:
+# CREATE TABLE `powermeter` (
+#   `key` int(11) NOT NULL AUTO_INCREMENT,
+#   `timestamp` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+#   `ct` int(11) NOT NULL,
+#   `watts` float NOT NULL,
+#   PRIMARY KEY (`key`)
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+def insert_data(ct, value):
+    mycursor = mydb.cursor()
+    timestamp = datetime.today().timestamp()
+    sql = (f"INSERT INTO `{db_table}` (ct, watts)"
+        f"VALUES ('{ct}', {value})")
+    print(sql)
+    mycursor.execute(sql)
+    mydb.commit()
 
 ########################
 # Hardware & Math
@@ -79,7 +106,7 @@ def get_voltage_reading(ct):
 ########################
 # Do Work
 ########################
-
+key=0
 try:
     # "debug" loop
     while debug == True:
@@ -108,6 +135,8 @@ try:
                     arr.append(statistics.mean(measuredinput))
                 measuredinput.clear()
             print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)) + " | stdev: " + str(statistics.stdev(arr)))
+            insert_data(i,round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2))
+            key+=1
             arr.clear()
 
 except KeyboardInterrupt:
