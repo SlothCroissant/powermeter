@@ -41,18 +41,6 @@ def get_voltage_reading(ct):
     volts = round(volts, places)
     return volts
 
-def setmediandata(data):
-    #pushing additional math here testing:
-    #get top 500 results from 60hz grab
-    #start = datetime.today().timestamp()
-    _temp = heapq.nlargest(10, data)
-    #end = datetime.today().timestamp()
-    #print(f"seek time for top 500 was {end - start} seconds")
-    #median the _temp (top 500) results from here.
-    #print(f" measured input index count: {len(data)}")
-    # time.sleep(0.5)
-    return statistics.median(_temp)
-
 try:
     # "debug" loop
     while debug == True:
@@ -91,7 +79,7 @@ try:
             while (len(measuredinput) < 10000):
                 measuredinput.append(get_voltage_reading(i))
             end = datetime.today().timestamp()
-            volts = setmediandata(measuredinput)
+            volts = statistics.median(measuredinput)
             print(f"Channel {i} Time Elapsed: {round((end-start)*1000,2)}")
             print(f"           volts: {volts}")
             print(f"           watts: " + str(120 * volts * ct_amps["ct"+str(i)]))
