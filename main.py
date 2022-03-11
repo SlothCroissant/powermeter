@@ -4,7 +4,6 @@ import RPi.GPIO as GPIO
 import spidev
 import time
 import statistics
-import heapq
 from datetime import datetime
 import mysql.connector
 
@@ -26,9 +25,9 @@ for i in range(ct_count):
 db_host = os.environ.get("db_host")
 db_port = os.environ.get("db_port")
 db_database = os.environ.get("db_database")
+db_table = os.environ.get("db_table")
 db_user = os.environ.get("db_user")
 db_pass = os.environ.get("db_pass")
-db_table = os.environ.get("db_table")
 
 ########################
 # MySQL
@@ -58,9 +57,7 @@ mydb = mysql.connector.connect(
 )
 print("Connected to database: " + db_host + ":" + str(db_port))
 print("Checking if \"" + db_table + "\" table exists...")
-if (checkTableExists(mydb, db_table) == False):
-    mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))")
+checkTableExists(mydb, db_table)
 
 # TO DO: Create DB if needed:
 # CREATE TABLE `powermeter` (
@@ -71,13 +68,10 @@ if (checkTableExists(mydb, db_table) == False):
 #   PRIMARY KEY (`key`)
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-def insert_data(ct, value):
+def insert_data(value_arr):
     mycursor = mydb.cursor()
-    timestamp = datetime.today().timestamp()
-    sql = (f"INSERT INTO `{db_table}` (ct, watts)"
-        f"VALUES ('{ct}', {value})")
-    print(sql)
-    mycursor.execute(sql)
+    sql = (f"INSERT INTO `{db_table}` (ct, watts) VALUES (%s, %s)")
+    mycursor.executemany(sql,value_arr)
     mydb.commit()
 
 ########################
@@ -110,6 +104,7 @@ key=0
 try:
     # "debug" loop
     while debug == True:
+        values_arr = []
         for i in range(8):
             arr = []
             while (len(arr) < 10):
@@ -134,10 +129,11 @@ try:
                 if (len(measuredinput) > 50):
                     arr.append(statistics.mean(measuredinput))
                 measuredinput.clear()
-            print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)) + " | stdev: " + str(statistics.stdev(arr)))
-            insert_data(i,round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2))
+            print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
+            values_arr.append((i,round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
             key+=1
             arr.clear()
+        insert_data(values_arr)
 
 except KeyboardInterrupt:
     print("User Exit")
