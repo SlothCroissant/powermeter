@@ -2,10 +2,10 @@ from audioop import avg
 import os
 import RPi.GPIO as GPIO
 import spidev
-import time
 import statistics
 from datetime import datetime
 import mysql.connector
+import traceback
 
 ########################
 # Env Vars
@@ -32,8 +32,9 @@ db_pass = os.environ.get("db_pass")
 ########################
 # MySQL
 ########################
-def checkTableExists(dbcon, tablename):
-    dbcur = dbcon.cursor()
+def checkTableExists(db, tablename):
+    print("Checking if \"" + db_table + "\" table exists...")
+    dbcur = db.cursor()
     dbcur.execute("""
         SELECT COUNT(*)
         FROM information_schema.tables
@@ -49,15 +50,16 @@ def createTable(dbcon, tablename):
     return True
 
 # Establish DB connection
-mydb = mysql.connector.connect(
-  host=db_host,
-  database=db_database,
-  user=db_user,
-  password=db_pass
-)
-print("Connected to database: " + db_host + ":" + str(db_port))
-print("Checking if \"" + db_table + "\" table exists...")
-checkTableExists(mydb, db_table)
+def connect_db():
+    print("Connecting to database: " + db_host + ":" + str(db_port))
+    db = mysql.connector.connect(
+    host=db_host,
+    database=db_database,
+    user=db_user,
+    password=db_pass
+    )
+    checkTableExists(db, db_table)
+    return db
 
 # TO DO: Create DB if needed:
 # CREATE TABLE `powermeter` (
@@ -68,11 +70,11 @@ checkTableExists(mydb, db_table)
 #   PRIMARY KEY (`key`)
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-def insert_data(value_arr):
-    mycursor = mydb.cursor()
+def insert_data(db, value_arr):
+    mycursor = db.cursor()
     sql = (f"INSERT INTO `{db_table}` (ct, watts) VALUES (%s, %s)")
     mycursor.executemany(sql,value_arr)
-    mydb.commit()
+    db.commit()
 
 ########################
 # Hardware & Math
@@ -101,9 +103,13 @@ def get_voltage_reading(ct):
 # Do Work
 ########################
 key=0
-try:
-    # "debug" loop
-    while debug == True:
+while debug == True:
+    try:
+        try:
+            db
+        except:
+            db = connect_db()
+        db.ping(reconnect=True, attempts=10, delay=10)
         values_arr = []
         for i in range(8):
             arr = []
@@ -133,7 +139,10 @@ try:
             values_arr.append((i,round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
             key+=1
             arr.clear()
-        insert_data(values_arr)
-
-except KeyboardInterrupt:
-    print("User Exit")
+        insert_data(db, values_arr)
+    except KeyboardInterrupt:
+        print("User Exit")
+        exit()
+    except Exception:
+        print(traceback.format_exc())
+        continue
