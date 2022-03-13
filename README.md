@@ -11,7 +11,7 @@
 
 [SlothCroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter) is an open-source energy meter implementation for the Raspberry Pi platform, written in Python. Hardware specifications can be found in the `/hardware` folder. The application can be run either natively via Python, or the available Docker container.
 
-At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and writes the resulting data to a MySQL/MariaDB database.
+At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and writes the resulting data to a MySQL/MariaDB database. The application has some simple retry logic built-in, and users can keep track of logs via the `docker logs` command.
 
 ## Prerequisites
 
