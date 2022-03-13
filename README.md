@@ -119,3 +119,7 @@ When running the `docker run` command, the Docker CLI client checks the value th
    
   - [ ] To-Do: Additional board support, allowing up to 64 CTs on a single Raspberry Pi
   - [ ] To-Do: Adjustable CT counts via Environment Variables
+
+* MySQL/MariaDB *must* be pre-configured, and we will throw exceptions if there are any failures (bad auth, bad DB/table names, etc)
+
+  - [ ] To-Do: Support for creating a fresh table if specified table doesn't exist
