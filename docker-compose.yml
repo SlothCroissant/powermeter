@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  powermeter:
+    container_name: powermeter
+    image: slothcroissant/rpi-powermeter:nightly
+    environment:
+      - ct0=20
+      - ct1=20
+      - ct2=20
+      - ct3=20
+      - ct4=20
+      - ct5=20
+      - ct6=20
+      - ct7=30
+      - db_host=dbhost.lan
+      - db_port=3306
+      - db_database=data
+      - db_table=powermeter
+      - db_user=dbuser
+      - db_pass=dbpassword
+    devices:
+      - /dev/spidev0.0
