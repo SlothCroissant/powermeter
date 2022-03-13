@@ -13,9 +13,9 @@
 
 At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and writes the resulting data to a MySQL/MariaDB database.
 
-## Minimum Requirements
+## Prerequisites
 
-There are very few requirements from the hardware/OS perspective:
+There are very few prerequisites the hardware/OS perspective:
 
 * [Raspberry Pi 3b+ or higher](https://www.raspberrypi.org/) (Inclding all models of the Raspberry Pi 4)
 * Latest [Raspberry Pi OS](https://www.raspberrypi.com/software/) installed
@@ -113,3 +113,9 @@ When running the `docker run` command, the Docker CLI client checks the value th
 | `-e db_table="powermeter"` | Table name for your existing MySQL/MariaDB host |
 | `-e db_user="dbuser"` | Database username for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
 | `-e db_pass="dbpassword"` | Database user password for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
+
+## Limitations / To-Do
+* Currently, we only support exactly 8 CTs on a single ADC board, with no support for additional boards.
+   
+  - [ ] To-Do: Additional board support, allowing up to 64 CTs on a single Raspberry Pi
+  - [ ] To-Do: Adjustable CT counts via Environment Variables
