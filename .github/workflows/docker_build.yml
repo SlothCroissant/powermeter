@@ -39,4 +39,4 @@ jobs:
         docker buildx build \        
         --platform ${{ steps.prepare.outputs.docker_platform }} \        
         --tag ${{ steps.prepare.outputs.tag }} \        
-        --output type=image,push=true .
+        --push .
