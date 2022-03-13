@@ -62,7 +62,7 @@ def connect_db():
     return db
 
 # TO DO: Create DB if needed:
-# CREATE TABLE `powermeter` (
+# CREATE TABLE `energymeter` (
 #   `key` int(11) NOT NULL AUTO_INCREMENT,
 #   `timestamp` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
 #   `ct` int(11) NOT NULL,

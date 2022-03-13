@@ -6,7 +6,7 @@ on:
 
 env:
   DOCKER_USERNAME: slothcroissant
-  DOCKER_CONTAINER_NAME: rpi-powermeter
+  DOCKER_CONTAINER_NAME: rpi-energymeter
   DOCKER_TARGET_PLATFORM: linux/arm/v7
 
 jobs:

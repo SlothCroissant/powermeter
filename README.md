@@ -1,15 +1,15 @@
-# [SlothCroissant/powermeter](https://github.com/SlothCroissant/powermeter)
+# [SlothCroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter)
 
-[![GitHub Build Status](https://img.shields.io/github/workflow/status/slothcroissant/powermeter/Docker%20Image%20CI/nightly?style=for-the-badge)](https://github.com/SlothCroissant/powermeter/actions/workflows/docker_build.yml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/slothcroissant/rpi-powermeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-powermeter)
-[![Docker Stars](https://img.shields.io/docker/stars/slothcroissant/rpi-powermeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-powermeter)
-[![Docker Image Size](https://img.shields.io/docker/image-size/slothcroissant/rpi-powermeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-powermeter)
-[![Docker Image Version](https://img.shields.io/docker/v/slothcroissant/rpi-powermeter?sort=semver&style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-powermeter)
-[![License](https://img.shields.io/github/license/slothcroissant/powermeter?style=for-the-badge)]
+[![GitHub Build Status](https://img.shields.io/github/workflow/status/slothcroissant/rpi-energymeter/Docker%20Image%20CI/nightly?style=for-the-badge)](https://github.com/SlothCroissant/rpi-energymeter/actions/workflows/docker_build.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/slothcroissant/rpi-energymeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-energymeter)
+[![Docker Stars](https://img.shields.io/docker/stars/slothcroissant/rpi-energymeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-energymeter)
+[![Docker Image Size](https://img.shields.io/docker/image-size/slothcroissant/rpi-energymeter?style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-energymeter)
+[![Docker Image Version](https://img.shields.io/docker/v/slothcroissant/rpi-energymeter?sort=semver&style=for-the-badge)](https://hub.docker.com/r/slothcroissant/rpi-energymeter)
+[![License](https://img.shields.io/github/license/slothcroissant/rpi-energymeter?style=for-the-badge)]
 
 ## Overview
 
-[SlothCroissant/powermeter](https://github.com/SlothCroissant/powermeter) is an open-source energy meter implementation for the Raspberry Pi platform, written in Python. Hardware specifications can be found in the `/hardware` folder. The application can be run either natively via Python, or the available Docker container.
+[SlothCroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter) is an open-source energy meter implementation for the Raspberry Pi platform, written in Python. Hardware specifications can be found in the `/hardware` folder. The application can be run either natively via Python, or the available Docker container.
 
 At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and writes the resulting data to a MySQL/MariaDB database.
 
@@ -32,8 +32,8 @@ mo
 
 If deploying via Docker, users can choose whichever container registry they prefer - we will continuously deploy to both:
 
-* Docker Hub: [slothcroissant/powermeter]((https://hub.docker.com/r/slothcroissant/rpi-powermeter))
-* GitHub Container Registry: [ghcr.io/slothcroissant/powermeter](https://github.com/SlothCroissant/powermeter/pkgs/container/rpi-powermeter)
+* Docker Hub: [slothcroissant/rpi-energymeter]((https://hub.docker.com/r/slothcroissant/rpi-energymeter))
+* GitHub Container Registry: [ghcr.io/slothcroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter/pkgs/container/rpi-energymeter)
 
 ## Version Tags
 
@@ -54,9 +54,9 @@ Here are some example snippets to help you get started creating a container.
 version: '3.8'
 
 services:
-  powermeter:
-    container_name: powermeter
-    image: slothcroissant/rpi-powermeter:nightly
+  energymeter:
+    container_name: energymeter
+    image: slothcroissant/rpi-energymeter:nightly
     environment:
       - ct0=20
       - ct1=20
@@ -69,7 +69,7 @@ services:
       - db_host=dbhost.lan
       - db_port=3306
       - db_database=data
-      - db_table=powermeter
+      - db_table=energymeter
       - db_user=dbuser
       - db_pass=dbpassword
     devices:
@@ -80,7 +80,7 @@ services:
 
 ```bash
 docker run -d \
-  --name=powermeter \
+  --name=energymeter \
   --device=/dev/spidev0.0 \
   -e ct0=20 \
   -e ct1=20 \
@@ -93,11 +93,11 @@ docker run -d \
   -e db_host="dbhost.lan" \
   -e db_port=3306 \
   -e db_database="data" \
-  -e db_table="powermeter" \
+  -e db_table="energymeter" \
   -e db_user="dbuser" \
   -e db_pass="dbpassword" \
   --restart unless-stopped \
-  slothcroissant/rpi-powermeter:nightly
+  slothcroissant/rpi-energymeter:nightly
 ```
 
 ## Environment Variables
@@ -110,7 +110,7 @@ When running the `docker run` command, the Docker CLI client checks the value th
 | `-e db_host="dbhost.lan"` | Hostname or IP address for your existing MySQL/MariaDB host |
 | `-e db_port=3306` | TCP port for your existing MySQL/MariaDB host |
 | `-e db_database="data"` | Database name for your existing MySQL/MariaDB host |
-| `-e db_table="powermeter"` | Table name for your existing MySQL/MariaDB host |
+| `-e db_table="energymeter"` | Table name for your existing MySQL/MariaDB host |
 | `-e db_user="dbuser"` | Database username for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
 | `-e db_pass="dbpassword"` | Database user password for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
 

@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  powermeter:
-    container_name: powermeter
-    image: slothcroissant/rpi-powermeter:nightly
+  energymeter:
+    container_name: energymeter
+    image: slothcroissant/rpi-energymeter:nightly
     environment:
       - ct0=20
       - ct1=20
@@ -16,7 +16,7 @@ services:
       - db_host=dbhost.lan
       - db_port=3306
       - db_database=data
-      - db_table=powermeter
+      - db_table=energymeter
       - db_user=dbuser
       - db_pass=dbpassword
     devices:
