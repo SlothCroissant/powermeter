@@ -74,8 +74,7 @@ jobs:
     if: ${{ needs.changed_files.outputs.readme == 'true' }}
     steps:
     - uses: actions/checkout@v3
-
-    - name: Docker Hub Description
+    - name: Update Docker Hub Description & README
       uses: peter-evans/dockerhub-description@v2
       with:
         username: ${{ env.DOCKER_USERNAME }}
