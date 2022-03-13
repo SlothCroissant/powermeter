@@ -103,13 +103,17 @@ def get_voltage_reading(ct):
 # Do Work
 ########################
 key=0
-while debug == True:
+while debug == True: # Loop forever
     try:
+        # If the DB hasn't been instantiated yet, connect to it
         try:
             db
         except:
             db = connect_db()
+        
+        # Check to see that the DB has connectivity, and reconnect if needed
         db.ping(reconnect=True, attempts=10, delay=10)
+
         values_arr = []
         for i in range(8):
             arr = []
@@ -126,20 +130,22 @@ while debug == True:
                         for int in range(51):
                             measuredinput.append(reading)
                         break
-                start = datetime.today().timestamp()
+                #start = datetime.today().timestamp()
                 while (reading > 0):
                     reading = get_voltage_reading(i)
                     if (reading > 0):
                         measuredinput.append(reading)
-                end = datetime.today().timestamp()
+                #end = datetime.today().timestamp()
                 if (len(measuredinput) > 50):
                     arr.append(statistics.mean(measuredinput))
                 measuredinput.clear()
-            print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
+            #print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
             values_arr.append((i,round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
             key+=1
             arr.clear()
+        print(str(datetime.today().timestamp()) + " " + str(values_arr))
         insert_data(db, values_arr)
+
     except KeyboardInterrupt:
         print("User Exit")
         exit()
