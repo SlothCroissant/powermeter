@@ -25,6 +25,7 @@ jobs:
             - 'README.md'
           src:
             - 'src/**'
+            - 'Dockerfile'
         list-files: json
         base: 'nightly'
 
