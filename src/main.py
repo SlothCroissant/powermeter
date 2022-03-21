@@ -171,6 +171,4 @@ while debug == True:  # Loop forever
         exit()
     except Exception:
         print(traceback.format_exc())
-        spi.close()
-        GPIO.cleanup()
         continue
