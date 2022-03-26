@@ -126,7 +126,7 @@ def get_voltage_reading(ct):
 # Do Work
 ########################
 key = 0
-while debug == True:  # Loop forever
+while debug == False:  # Loop forever
     try:
         # If the DB hasn't been instantiated yet, connect to it
         try:
@@ -137,7 +137,8 @@ while debug == True:  # Loop forever
         # Check to see that the DB has connectivity, and reconnect if needed
         db.ping(reconnect=True, attempts=10, delay=10)
 
-        for mux_channel in range(2):
+        ct_num = 0
+        for mux_channel in range(mux_channel_count):
             # Set MUX BIT registers for ADC selection.
             for x in range(3): # range to be expanded (HW Limitation).
                 GPIO.output(shiftpins[x], addresses[mux_channel][x])
@@ -158,21 +159,78 @@ while debug == True:  # Loop forever
                             for int in range(51):
                                 measuredinput.append(reading)
                             break
-                    # start = datetime.today().timestamp()
                     while (reading > 0):
                         reading = get_voltage_reading(i)
                         if (reading > 0):
                             measuredinput.append(reading)
-                    # end = datetime.today().timestamp()
                     if (len(measuredinput) > 50):
                         arr.append(statistics.mean(measuredinput))
                     measuredinput.clear()
-                # print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
-                values_arr.append((i, round(120 * statistics.mean(arr) * ct_amps["ct" + str(i)], 2)))
+                values_arr.append((i, round(120 * statistics.mean(arr) * ct_amps["ct" + str(ct_num)], 2)))
                 key += 1
+                ct_num += 1
                 arr.clear()
-            print(str(datetime.today().timestamp()) + " " + str(values_arr))
-            insert_data(db, values_arr)
+            print(str(datetime.today().timestamp()) + " Mux Channel: " + str(mux_channel) + " | " + str(values_arr))
+        insert_data(db, values_arr)
+
+    except KeyboardInterrupt:
+        print("User Exit")
+        spi.close()
+        GPIO.cleanup()
+        exit()
+    except Exception:
+        print(traceback.format_exc())
+        continue
+
+while debug == True:  # Loop forever
+    try:
+        # If the DB hasn't been instantiated yet, connect to it
+        try:
+            db
+        except:
+            db = connect_db()
+
+        # Check to see that the DB has connectivity, and reconnect if needed
+        db.ping(reconnect=True, attempts=10, delay=10)
+
+        ct_num = 0
+        for mux_channel in range(mux_channel_count):
+            # Set MUX BIT registers for ADC selection.
+            for x in range(3): # range to be expanded (HW Limitation).
+                GPIO.output(shiftpins[x], addresses[mux_channel][x])
+            # Logging for selected ADC
+            values_arr = []
+            for i in range(8):
+                arr = []
+                while (len(arr) < 10):
+                    measuredinput = []
+                    reading = 1
+                    while (reading > 0):
+                        reading = get_voltage_reading(i)
+                        print("Mux: " + str(mux_channel) + " | CT: " + str(i) + " | Reading: " + str(reading))
+                    n = 0
+                    while (reading == 0):
+                        reading = get_voltage_reading(i)
+                        print("Mux: " + str(mux_channel) + " | CT: " + str(i) + " | Reading: " + str(reading))
+                        n += 1
+                        if (n > 1000):
+                            for int in range(51):
+                                measuredinput.append(reading)
+                            break
+                    while (reading > 0):
+                        reading = get_voltage_reading(i)
+                        print("Mux: " + str(mux_channel) + " | CT: " + str(i) + " | Reading: " + str(reading))
+                        if (reading > 0):
+                            measuredinput.append(reading)
+                    if (len(measuredinput) > 50):
+                        arr.append(statistics.mean(measuredinput))
+                    measuredinput.clear()
+                values_arr.append((i, round(120 * statistics.mean(arr) * ct_amps["ct" + str(ct_num)], 2)))
+                key += 1
+                ct_num += 1
+                arr.clear()
+            print(str(datetime.today().timestamp()) + " Mux Channel: " + str(mux_channel) + " | " + str(values_arr))
+        insert_data(db, values_arr)
 
     except KeyboardInterrupt:
         print("User Exit")
