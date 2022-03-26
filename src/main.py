@@ -1,6 +1,8 @@
 from audioop import avg
 import os
+import re
 import RPi.GPIO as GPIO
+import math
 import spidev
 import statistics
 from datetime import datetime
@@ -13,7 +15,15 @@ import traceback
 debug = True
 
 # CT Count
-ct_count = 8
+ct_count = 0
+print(f'Parsing provided Environment Variables:')
+myPattern = re.compile(r'^ct[0-9]+$')
+for key, val in os.environ.items():
+    if myPattern.match(key):
+        print(f'{key}={val}')
+        ct_count += 1
+mux_channel_count = int(math.ceil(ct_count / 8))
+print(f'Found ' + str(ct_count) + " CTs across " + str(mux_channel_count) + " Mux channels")
 
 # Build dict of CTs and their Amp rating
 ct_amps = {}
