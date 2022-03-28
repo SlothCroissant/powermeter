@@ -12,7 +12,7 @@ import traceback
 ########################
 # Env Vars
 ########################
-debug = True
+debug = False
 
 # CT Count
 ct_count = 0
@@ -53,8 +53,10 @@ def checkTableExists(db, tablename):
         """.format(tablename.replace('\'', '\'\'')))
     if dbcur.fetchone()[0] == 1:
         dbcur.close()
+        print("Table Exists!...")
         return True
     dbcur.close()
+    print("Table Doesn't exist!...")
     return False
 
 
@@ -95,6 +97,7 @@ def insert_data(db, value_arr):
 # Hardware & Math
 ########################
 # Open SPI bus
+print("Opening SPI bus...")
 spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
@@ -108,11 +111,15 @@ def read_raw_data(ct):
     return data
 
 # Configure GPIO and Mode
+print("Setting GPIO Mode...")
 GPIO.setmode(GPIO.BOARD)
 shiftpins = [15, 13, 11]  # This order is important - based on hardware traces.
 addresses = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]]
 for pin in shiftpins:
+    print("Setting GPIO Pin " + str(pin) + "...")
     GPIO.setup(pin, GPIO.OUT)
+
+print("Pins set.")
 
 # Function to convert data to voltage level,
 # rounded to specified number of decimal places.
@@ -126,7 +133,7 @@ def get_voltage_reading(ct):
 # Do Work
 ########################
 key = 0
-while debug == True:  # Loop forever
+while debug == False:  # Loop forever
     try:
         # If the DB hasn't been instantiated yet, connect to it
         try:
@@ -144,30 +151,35 @@ while debug == True:  # Loop forever
             # Logging for selected ADC
             values_arr = []
             for i in range(8):
+                #print("Checking Mux " + str(mux_channel) + " / ct" + str(i) + "...")
                 arr = []
+                # We want 10 sine wave "upside" cycles to ensure good data
                 while (len(arr) < 10):
                     measuredinput = []
+                    # Until we get 50 readings on a single upside, keep checking
                     reading = 1
+                    # Get initial reading - if > 0 (top half of the sine wave), wait till we get back to 0.
                     while (reading > 0):
                         reading = get_voltage_reading(i)
+                    # Now that we're back to 0 (bottom half of the sine wave), let's wait till we get back to the top half so we can take a reading
                     n = 0
                     while (reading == 0):
                         reading = get_voltage_reading(i)
                         n += 1
+                        # But if we get to 100 readings without anything, we should assume this CT is actually reading zeroes.
                         if (n > 100):
-                            for int in range(51):
+                            for int in range(6):
                                 measuredinput.append(reading)
                             break
-                    # start = datetime.today().timestamp()
+                    # Now that the CT is reading > 0, add all the values to measuredinput array so we can calculate off of them.
                     while (reading > 0):
                         reading = get_voltage_reading(i)
                         if (reading > 0):
                             measuredinput.append(reading)
-                    # end = datetime.today().timestamp()
-                    if (len(measuredinput) > 50):
+                    # Now that the reading is now back below zero, check to see if we have "enough" readings to make a decision (basically, exclude any readings that didn't have 4 consecutive values above 0):
+                    if (len(measuredinput) >= 4):
                         arr.append(statistics.mean(measuredinput))
                     measuredinput.clear()
-                # print("time: " + str(end) + " | ct: "+ str(i) + " | ct_amps: " + str(ct_amps["ct"+str(i)]) + " | watts: " + str(round(120 * statistics.mean(arr) * ct_amps["ct"+str(i)],2)))
                 values_arr.append((i, round(120 * statistics.mean(arr) * ct_amps["ct" + str(i)], 2)))
                 key += 1
                 arr.clear()
@@ -176,8 +188,11 @@ while debug == True:  # Loop forever
 
     except KeyboardInterrupt:
         print("User Exit")
+        print("Closing SPI bus...")
         spi.close()
+        print("Cleaning up GPIO...")
         GPIO.cleanup()
+        print("Exiting...")
         exit()
     except Exception:
         print(traceback.format_exc())
