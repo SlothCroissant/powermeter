@@ -10,4 +10,4 @@ RUN apk --update add --virtual build-dependencies libffi-dev build-base
 RUN pip install -r requirements.txt 
 RUN apk del build-dependencies
 
-CMD [ "python3",  "main.py"]
+CMD [ "python3", "-u", "main.py"]
