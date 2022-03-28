@@ -5,14 +5,22 @@ services:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
     environment:
-      - ct0=20
-      - ct1=20
-      - ct2=20
-      - ct3=20
-      - ct4=20
-      - ct5=20
-      - ct6=20
-      - ct7=30
+      - ct0_0=100
+      - ct0_1=100
+      - ct0_2=30
+      - ct0_3=30
+      - ct0_4=20
+      - ct0_5=20
+      - ct0_6=20
+      - ct0_7=20
+      - ct1_0=20
+      - ct1_1=20
+      - ct1_2=20
+      - ct1_3=20
+      - ct1_4=20
+      - ct1_5=20
+      - ct1_6=30
+      - ct1_7=20
       - db_host=dbhost.lan
       - db_port=3306
       - db_database=data

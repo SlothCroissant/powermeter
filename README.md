@@ -46,6 +46,15 @@ This image provides various versions that are available via tags. `nightly` tag 
 
 ## Usage
 
+First off, determine your CT amperage ratings across all mux channels you have deployed. For example (and in the docker examples below) I have 16 CTs spread across two mux channels with varying CT amperage ratings. The CTs and mux channels are both numbered 0-7, and you'd denote a certain CT by using the following idea:
+
+`ct<mux_channel>_<ct_number>`
+
+So some quick examples:
+
+* `ct0_1` would be mux channel 0 (the first mux channel on the board), CT number 1 (the second CT on the board). 
+* `ct1_7` indicates mux_channel 1 (the second mux channel) and CT 7 (the 8th and final CT on that mux channel)
+
 Here are some example snippets to help you get started creating a container.
 
 ### docker-compose (recommended, [click here for more info](https://docs.docker.com/compose/compose-file/compose-file-v3/))
@@ -58,22 +67,30 @@ services:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
     environment:
-      - ct0=20
-      - ct1=20
-      - ct2=20
-      - ct3=20
-      - ct4=20
-      - ct5=20
-      - ct6=20
-      - ct7=30
-      - db_host=dbhost.lan
-      - db_port=3306
-      - db_database=data
-      - db_table=energymeter
-      - db_user=dbuser
-      - db_pass=dbpassword
+  -e ct0_0=100
+  -e ct0_1=100
+  -e ct0_2=30
+  -e ct0_3=30
+  -e ct0_4=20
+  -e ct0_5=20
+  -e ct0_6=20
+  -e ct0_7=20
+  -e ct1_0=20
+  -e ct1_1=20
+  -e ct1_2=20
+  -e ct1_3=20
+  -e ct1_4=20
+  -e ct1_5=20
+  -e ct1_6=30
+  -e ct1_7=20
+  -e db_host=dbhost.lan
+  -e db_port=3306
+  -e db_database=data
+  -e db_table=energymeter
+  -e db_user=dbuser
+  -e db_pass=dbpassword
     devices:
-      - /dev/spidev0.0
+  -e /dev/spidev0.0
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -82,14 +99,22 @@ services:
 docker run -d \
   --name=energymeter \
   --device=/dev/spidev0.0 \
-  -e ct0=20 \
-  -e ct1=20 \
-  -e ct2=20 \
-  -e ct3=20 \
-  -e ct4=20 \
-  -e ct5=20 \
-  -e ct6=20 \
-  -e ct7=30 \
+  -e ct0_0=100 \
+  -e ct0_1=100 \
+  -e ct0_2=30 \
+  -e ct0_3=30 \
+  -e ct0_4=20 \
+  -e ct0_5=20 \
+  -e ct0_6=20 \
+  -e ct0_7=20 \
+  -e ct1_0=20 \
+  -e ct1_1=20 \
+  -e ct1_2=20 \
+  -e ct1_3=20 \
+  -e ct1_4=20 \
+  -e ct1_5=20 \
+  -e ct1_6=30 \
+  -e ct1_7=20 \
   -e db_host="dbhost.lan" \
   -e db_port=3306 \
   -e db_database="data" \

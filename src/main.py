@@ -17,7 +17,7 @@ debug = False
 # CT Count
 ct_count = 0
 print(f'Parsing provided Environment Variables:')
-myPattern = re.compile(r'^ct[0-9]+$')
+myPattern = re.compile(r'^ct[0-9]_[0-9]$')
 for key, val in os.environ.items():
     if myPattern.match(key):
         print(f'{key}={val}')
@@ -27,9 +27,10 @@ print(f'Found ' + str(ct_count) + " CTs across " + str(mux_channel_count) + " Mu
 
 # Build dict of CTs and their Amp rating
 ct_amps = {}
-for i in range(ct_count):
-    key = str("ct" + str(i))
-    ct_amps[key] = float(os.environ.get("ct" + str(i)))
+for mux_channel in range(mux_channel_count):
+    for i in range(8):
+        key = str("ct" + str(mux_channel) + "_" + str(i))
+        ct_amps[key] = float(os.environ.get("ct" + str(i)))
 
 # MySQL DB Info
 db_host = os.environ.get("db_host")
@@ -144,11 +145,11 @@ while debug == False:  # Loop forever
         # Check to see that the DB has connectivity, and reconnect if needed
         db.ping(reconnect=True, attempts=10, delay=10)
 
-        for mux_channel in range(2):
+        for mux_channel in range(mux_channel_count):
             # Set MUX BIT registers for ADC selection.
             for x in range(3): # range to be expanded (HW Limitation).
                 GPIO.output(shiftpins[x], addresses[mux_channel][x])
-            # Logging for selected ADC
+            # Logging for selected ADC (each ADC is hard-coded to 8 channels at this point)
             values_arr = []
             for i in range(8):
                 #print("Checking Mux " + str(mux_channel) + " / ct" + str(i) + "...")
@@ -180,7 +181,7 @@ while debug == False:  # Loop forever
                     if (len(measuredinput) >= 4):
                         arr.append(statistics.mean(measuredinput))
                     measuredinput.clear()
-                values_arr.append((i, round(120 * statistics.mean(arr) * ct_amps["ct" + str(i)], 2)))
+                values_arr.append(("ct" + str(mux_channel) + "_" + str(i), round(120 * statistics.mean(arr) * ct_amps["ct" + str(mux_channel) + "_" + str(i)], 2)))
                 key += 1
                 arr.clear()
             print(str(datetime.today().timestamp()) + " " + str(values_arr))
