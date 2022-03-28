@@ -30,7 +30,7 @@ ct_amps = {}
 for mux_channel in range(mux_channel_count):
     for i in range(8):
         key = str("ct" + str(mux_channel) + "_" + str(i))
-        ct_amps[key] = float(os.environ.get("ct" + str(i)))
+        ct_amps[key] = float(os.environ.get("ct" + str(mux_channel) + "_" + str(i)))
 
 # MySQL DB Info
 db_host = os.environ.get("db_host")
