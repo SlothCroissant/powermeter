@@ -44,6 +44,8 @@ This image provides various versions that are available via tags. `nightly` tag 
 | nightly | Latest testing release |
 | YYYY.MM.DD.## | Specific snapshot testing release |
 
+**Note:** The `nightly` branch is under heavy development. It can break at any time, without warning. Consequently, please be sure you fully review changes between your deployed version's `README.md` and the current to ensure we haven't introduced breaking changes with environment variables, etc.
+
 ## Usage
 
 First off, determine your CT amperage ratings across all mux channels you have deployed. For example (and in the docker examples below) I have 16 CTs spread across two mux channels with varying CT amperage ratings. The CTs and mux channels are both numbered 0-7, and you'd denote a certain CT by using the following idea:
