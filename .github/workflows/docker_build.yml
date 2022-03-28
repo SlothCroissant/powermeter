@@ -76,7 +76,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Update Docker Hub Description & README
-      uses: peter-evans/dockerhub-description@v2
+      uses: peter-evans/dockerhub-description@v3
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
