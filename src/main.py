@@ -3,10 +3,12 @@ import os
 import re
 import RPi.GPIO as GPIO
 import math
+from mysqlx import OperationalError
 import spidev
 import statistics
 from datetime import datetime
 import mysql.connector
+from mysql.connector import errorcode
 import traceback
 
 ########################
@@ -68,12 +70,21 @@ def createTable(dbcon, tablename):
 # Establish DB connection
 def connect_db():
     print("Connecting to database: " + db_host + ":" + str(db_port))
-    db = mysql.connector.connect(
-        host=db_host,
-        database=db_database,
-        user=db_user,
-        password=db_pass
-    )
+    
+    try:
+        db = mysql.connector.connect(
+            host=db_host,
+            database=db_database,
+            user=db_user,
+            password=db_pass
+        )
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Incorrect username/password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
     checkTableExists(db, db_table)
     return db
 
@@ -93,6 +104,14 @@ def insert_data(db, value_arr):
     mycursor.executemany(sql, value_arr)
     db.commit()
 
+def db_reconnect(db):
+    try:
+        db
+    except:
+        print("DB not instantiated. Connecting...")
+        db = connect_db()
+    print("DB reconnecting...")
+    db.ping(reconnect=True, attempts=1000, delay=10)
 
 ########################
 # Hardware & Math
@@ -142,9 +161,6 @@ while debug == False:  # Loop forever
         except:
             db = connect_db()
 
-        # Check to see that the DB has connectivity, and reconnect if needed
-        db.ping(reconnect=True, attempts=10, delay=10)
-
         for mux_channel in range(mux_channel_count):
             # Set MUX BIT registers for ADC selection.
             for x in range(3): # range to be expanded (HW Limitation).
@@ -187,6 +203,9 @@ while debug == False:  # Loop forever
             print(str(datetime.today().timestamp()) + " " + str(values_arr))
             insert_data(db, values_arr)
 
+    except mysql.connector.errors.OperationalError:
+        print("DB connection failed...")
+        db_reconnect(db)
     except KeyboardInterrupt:
         print("User Exit")
         print("Closing SPI bus...")
