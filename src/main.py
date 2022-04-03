@@ -152,7 +152,6 @@ def get_voltage_reading(ct):
 ########################
 # Do Work
 ########################
-key = 0
 while debug == False:  # Loop forever
     try:
         # If the DB hasn't been instantiated yet, connect to it
@@ -198,7 +197,6 @@ while debug == False:  # Loop forever
                         arr.append(statistics.mean(measuredinput))
                     measuredinput.clear()
                 values_arr.append(("ct" + str(mux_channel) + "_" + str(i), round(120 * statistics.mean(arr) * ct_amps["ct" + str(mux_channel) + "_" + str(i)], 2)))
-                key += 1
                 arr.clear()
             print(str(datetime.today().timestamp()) + " " + str(values_arr))
             insert_data(db, values_arr)
