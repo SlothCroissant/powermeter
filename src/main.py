@@ -69,7 +69,7 @@ def get_voltage_reading(ct):
     return volts
 
 
-def process_ct(ct):
+def process_ct(ct, mux_channel):
     arr = []
     # We want 10 sine wave "upside" cycles to ensure good data
     while len(arr) < 10:
@@ -114,7 +114,7 @@ def query_records():
             GPIO.output(shiftpins[_], addresses[mux_channel][_])
         # Logging for selected ADC (each ADC is hard-coded to 8 channels at this point)
         for _ in range(8):
-            values_arr.append(process_ct(_))
+            values_arr.append(process_ct(_, mux_channel))
     return values_arr
 
 
