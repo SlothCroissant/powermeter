@@ -9,9 +9,9 @@
 
 ## Overview
 
-[SlothCroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter) is an open-source energy meter implementation for the Raspberry Pi platform, written in Python. Hardware specifications can be found in the `/hardware` folder. The application can be run either natively via Python, or the available Docker container.
+[SlothCroissant/rpi-energymeter](https://github.com/SlothCroissant/rpi-energymeter) is an open-source energy meter implementation for the Raspberry Pi platform, written in Python. Hardware specifications can be found in the following repo: (`repo TBD`). The application can be run either natively via Python, or the available Docker container.
 
-At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and writes the resulting data to a MySQL/MariaDB database. The application has some simple retry logic built-in, and users can keep track of logs via the `docker logs` command.
+At a high-level, the application reads voltage values via [SPI](https://wikipedia.org/wiki/Serial_Peripheral_Interface) from split-core [current transformers](https://en.wikipedia.org/wiki/Current_transformer) (commonly referred to as CTs, and are made by a variety of manufacturers such as [YHDC](https://en.yhdc.com/product/SCT013-401.html)), converts the values to watts, and exposes the results via a Python Flask REST endpoint. Users can then consume the data into whichever database, etc software they choose.
 
 ## Prerequisites
 
@@ -19,7 +19,6 @@ There are very few prerequisites the hardware/OS perspective:
 
 * [Raspberry Pi 3b+ or higher](https://www.raspberrypi.org/) (Inclding all models of the Raspberry Pi 4)
 * Latest [Raspberry Pi OS](https://www.raspberrypi.com/software/) installed
-* An existing MySQL or Maria Database deployed and accessible from the Raspberry Pi. Note: due to MicroSD card wear, it is not recommended to run the DB on the Raspberry Pi itself.
 
 ## Running via Docker
 
@@ -41,8 +40,8 @@ This image provides various versions that are available via tags. `nightly` tag 
 
 | Tag | Description |
 | ---- | --- |
-| nightly | Latest testing release |
-| YYYY.MM.DD.## | Specific snapshot testing release |
+| `nightly` | Latest testing release |
+| `YYYY.MM.DD.##` | Specific snapshot testing release |
 
 **Note:** The `nightly` branch is under heavy development. It can break at any time, without warning. Consequently, please be sure you fully review changes between your deployed version's `README.md` and the current to ensure we haven't introduced breaking changes with environment variables, etc.
 
@@ -57,7 +56,7 @@ So some quick examples:
 * `ct0_1` would be mux channel 0 (the first mux channel on the board), CT number 1 (the second CT on the board). 
 * `ct1_7` indicates mux_channel 1 (the second mux channel) and CT 7 (the 8th and final CT on that mux channel)
 
-Here are some example snippets to help you get started creating a container.
+Here are some example snippets to help you get started creating a container:
 
 ### docker-compose (recommended, [click here for more info](https://docs.docker.com/compose/compose-file/compose-file-v3/))
 
@@ -68,31 +67,26 @@ services:
   energymeter:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
+    restart: always
     environment:
-  -e ct0_0=100
-  -e ct0_1=100
-  -e ct0_2=30
-  -e ct0_3=30
-  -e ct0_4=20
-  -e ct0_5=20
-  -e ct0_6=20
-  -e ct0_7=20
-  -e ct1_0=20
-  -e ct1_1=20
-  -e ct1_2=20
-  -e ct1_3=20
-  -e ct1_4=20
-  -e ct1_5=20
-  -e ct1_6=30
-  -e ct1_7=20
-  -e db_host=dbhost.lan
-  -e db_port=3306
-  -e db_database=data
-  -e db_table=energymeter
-  -e db_user=dbuser
-  -e db_pass=dbpassword
+    - ct0_0=100
+    - ct0_1=100
+    - ct0_2=30
+    - ct0_3=30
+    - ct0_4=20
+    - ct0_5=20
+    - ct0_6=20
+    - ct0_7=20
+    - ct1_0=20
+    - ct1_1=20
+    - ct1_2=20
+    - ct1_3=20
+    - ct1_4=20
+    - ct1_5=20
+    - ct1_6=30
+    - ct1_7=20
     devices:
-  -e /dev/spidev0.0
+    - /dev/spidev0.0
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -117,13 +111,7 @@ docker run -d \
   -e ct1_5=20 \
   -e ct1_6=30 \
   -e ct1_7=20 \
-  -e db_host="dbhost.lan" \
-  -e db_port=3306 \
-  -e db_database="data" \
-  -e db_table="energymeter" \
-  -e db_user="dbuser" \
-  -e db_pass="dbpassword" \
-  --restart unless-stopped \
+  --restart always \
   slothcroissant/rpi-energymeter:nightly
 ```
 
@@ -134,19 +122,7 @@ When running the `docker run` command, the Docker CLI client checks the value th
 | Env Var | Function |
 | ---- | --- |
 | `-e ctX=YY` | Set the amperage rating YY for ct X. You can find this directly on the CT clamp itself if needed |
-| `-e db_host="dbhost.lan"` | Hostname or IP address for your existing MySQL/MariaDB host |
-| `-e db_port=3306` | TCP port for your existing MySQL/MariaDB host |
-| `-e db_database="data"` | Database name for your existing MySQL/MariaDB host |
-| `-e db_table="energymeter"` | Table name for your existing MySQL/MariaDB host |
-| `-e db_user="dbuser"` | Database username for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
-| `-e db_pass="dbpassword"` | Database user password for your existing MySQL/MariaDB host, which has appropriate access to `db_database` |
 
 ## Limitations / To-Do
-* Currently, we only support exactly 8 CTs on a single ADC board, with no support for additional boards.
    
-  - [ ] To-Do: Additional board support, allowing up to 64 CTs on a single Raspberry Pi
-  - [ ] To-Do: Adjustable CT counts via Environment Variables
-
-* MySQL/MariaDB *must* be pre-configured, and we will throw exceptions if there are any failures (bad auth, bad DB/table names, etc)
-
-  - [ ] To-Do: Support for creating a fresh table if specified table doesn't exist
+To-do items can be found in GitHub Issues via the "[Enhancement](https://github.com/SlothCroissant/rpi-energymeter/issues?q=is%3Aissue+label%3Aenhancement)" tag.
