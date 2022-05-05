@@ -4,6 +4,7 @@ services:
   energymeter:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
+    restart: always
     environment:
       - ct0_0=100
       - ct0_1=100
@@ -21,11 +22,5 @@ services:
       - ct1_5=20
       - ct1_6=30
       - ct1_7=20
-      - db_host=dbhost.lan
-      - db_port=3306
-      - db_database=data
-      - db_table=energymeter
-      - db_user=dbuser
-      - db_pass=dbpassword
     devices:
       - /dev/spidev0.0
