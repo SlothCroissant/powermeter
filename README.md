@@ -123,6 +123,12 @@ When running the `docker run` command, the Docker CLI client checks the value th
 | ---- | --- |
 | `-e ctX=YY` | Set the amperage rating YY for ct X. You can find this directly on the CT clamp itself if needed |
 
+## Consuming Data
+
+Once running, the application listens at `0.0.0.0.:5000`, and can be easily accessed and queried at `http://<ip_address>:5000/`. For example:
+
+`curl http://energymeter.lan:5000/`
+
 ## Limitations / To-Do
    
 To-do items can be found in GitHub Issues via the "[Enhancement](https://github.com/SlothCroissant/rpi-energymeter/issues?q=is%3Aissue+label%3Aenhancement)" tag.
