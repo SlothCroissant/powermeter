@@ -2,12 +2,12 @@ FROM python:3.10.5-alpine
 
 LABEL Maintainer="SlothCroissant"
 
-WORKDIR /app
+WORKDIR /src
 
-COPY src/* .
+COPY . .
 RUN apk add --no-cache gcc
 RUN apk --update add --virtual build-dependencies libffi-dev build-base 
 RUN pip install -r requirements.txt 
 RUN apk del build-dependencies
 
-CMD [ "python3", "-u", "main.py"]
+CMD [ "gunicorn", "-b", "0.0.0.0:5000", "wsgi:app"]
