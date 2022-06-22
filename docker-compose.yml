@@ -5,6 +5,7 @@ services:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
     restart: always
+    network_mode: host
     environment:
       - ct0_0=100
       - ct0_1=100
@@ -24,3 +25,4 @@ services:
       - ct1_7=20
     devices:
       - /dev/spidev0.0
+    privileged: true

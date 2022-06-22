@@ -6,6 +6,7 @@ import statistics
 from datetime import datetime
 import RPi.GPIO as GPIO
 import spidev
+import logging
 from flask import Flask, jsonify
 
 ########################
@@ -122,17 +123,17 @@ def query_records():
 # Python Flask
 ########################
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
+    
+    @app.route('/', methods=['GET'])
 
+    def index():
+        start = datetime.now()
+        records = query_records()
+        timestamp = datetime.today().timestamp()
+        end = datetime.now()
+        timediff = (end - start).total_seconds() * 1000
+        return jsonify(timestamp=timestamp, records=records, elapsed_time=timediff)
 
-@app.route('/', methods=['GET'])
-def flask_get():
-    start = datetime.now()
-    records = query_records()
-    timestamp = datetime.today().timestamp()
-    end = datetime.now()
-    timediff = (end - start).total_seconds() * 1000
-    return jsonify(timestamp=timestamp, records=records, elapsed_time=timediff)
-
-
-app.run(host="0.0.0.0")
+    return app
