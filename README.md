@@ -19,6 +19,7 @@ There are very few prerequisites the hardware/OS perspective:
 
 * [Raspberry Pi 3b+ or higher](https://www.raspberrypi.org/) (Inclding all models of the Raspberry Pi 4)
 * Latest [Raspberry Pi OS](https://www.raspberrypi.com/software/) installed
+* Enable SPI interface via `sudo raspi-config` (and reboot)
 
 ## Running via Docker
 
@@ -68,25 +69,27 @@ services:
     container_name: energymeter
     image: slothcroissant/rpi-energymeter:nightly
     restart: always
+    network_mode: host
     environment:
-    - ct0_0=100
-    - ct0_1=100
-    - ct0_2=30
-    - ct0_3=30
-    - ct0_4=20
-    - ct0_5=20
-    - ct0_6=20
-    - ct0_7=20
-    - ct1_0=20
-    - ct1_1=20
-    - ct1_2=20
-    - ct1_3=20
-    - ct1_4=20
-    - ct1_5=20
-    - ct1_6=30
-    - ct1_7=20
+      - ct0_0=100
+      - ct0_1=100
+      - ct0_2=30
+      - ct0_3=30
+      - ct0_4=20
+      - ct0_5=20
+      - ct0_6=20
+      - ct0_7=20
+      - ct1_0=20
+      - ct1_1=20
+      - ct1_2=20
+      - ct1_3=20
+      - ct1_4=20
+      - ct1_5=20
+      - ct1_6=30
+      - ct1_7=20
     devices:
-    - /dev/spidev0.0
+      - /dev/spidev0.0
+    privileged: true
 ```
 
 ### docker cli ([click here for more info](https://docs.docker.com/engine/reference/commandline/cli/))
@@ -112,6 +115,8 @@ docker run -d \
   -e ct1_6=30 \
   -e ct1_7=20 \
   --restart always \
+  --network host \
+  --privileged=true \
   slothcroissant/rpi-energymeter:nightly
 ```
 
@@ -125,7 +130,7 @@ When running the `docker run` command, the Docker CLI client checks the value th
 
 ## Consuming Data
 
-Once running, the application listens at `0.0.0.0.:5000`, and can be easily accessed and queried at `http://<ip_address>:5000/`. For example:
+Once running, the application listens at `0.0.0.0:5000`, and can be easily accessed and queried at `http://<ip_address>:5000/`. For example:
 
 `curl http://energymeter.lan:5000/`
 
