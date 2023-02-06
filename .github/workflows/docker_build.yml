@@ -58,7 +58,7 @@ jobs:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build container and Push
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         platforms: ${{ steps.prepare.outputs.docker_platform }}
